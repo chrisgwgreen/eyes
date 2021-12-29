@@ -23,7 +23,7 @@ export const Eyes = () => {
       width / 64,
       height / 64,
       height / -64,
-      1,
+      10,
       10000
     )
     const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -56,7 +56,8 @@ export const Eyes = () => {
         )
         eyes[x + y].position.x = x * 2.5
         eyes[x + y].position.y = y * 2.5
-        eyes[x + y].rotation.x += -1.5
+
+        eyes[x + y].rotation.x = -Math.PI / 2
 
         scene.add(eyes[x + y])
       }
@@ -76,24 +77,44 @@ export const Eyes = () => {
       renderScene()
     }
 
-    const animate = () => {
-      eyes[0].rotation.x += 0.01
-      // eyes[1].rotation.x += 0.01
+    // const animate = () => {
+    //   eyes[0].rotation.x += 0.01
+    //   // eyes[1].rotation.x += 0.01
 
-      // eyes[0].rotation.z += 0.01
-      // eyes[1].rotation.z += 0.01
+    //   // eyes[0].rotation.z += 0.01
+    //   // eyes[1].rotation.z += 0.01
 
-      renderScene()
-      requestAnimationFrame(animate)
+    //   renderScene()
+    //   requestAnimationFrame(animate)
+    // }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      requestAnimationFrame(() => {
+        console.log('handleMouseMove', e)
+
+        for (let index = 0; index < eyes.length; index++) {
+          // eyes[index].rotation.z += 0.01
+
+          eyes[index].lookAt(-e.screenX, e.screenY, 100)
+        }
+
+        renderScene()
+
+        // eyes[0].rotation.x += 0.01
+      })
     }
 
-    requestAnimationFrame(animate)
+    renderScene()
+
+    // requestAnimationFrame(animate)
 
     mountCurrent.appendChild(renderer.domElement)
     window.addEventListener('resize', handleResize)
+    window.addEventListener('mousemove', handleMouseMove)
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('mousemove', handleMouseMove)
       mountCurrent.removeChild(renderer.domElement)
       geometry.dispose()
 
