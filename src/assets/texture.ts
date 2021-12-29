@@ -37,7 +37,7 @@ export const getTexture = (index: number) => {
   }
 
   // Iris
-  const colors = ['66B5D2', '634E34']
+  const colors = ['66B5D2', '634E34', '2C9131']
 
   const color = colors[index]
 

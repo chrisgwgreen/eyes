@@ -10,12 +10,12 @@ const EyeWrapper = styled.div`
 `
 
 export const Eyes = () => {
-  const mount = useRef<HTMLDivElement>(document.createElement('div'))
+  const eyeWrapper = useRef<HTMLDivElement>(document.createElement('div'))
 
   useEffect(() => {
-    const mountCurrent = mount.current
-    let width = mountCurrent.clientWidth
-    let height = mountCurrent.clientHeight
+    const eyeWrapperCurrent = eyeWrapper.current
+    let width = eyeWrapperCurrent.clientWidth
+    let height = eyeWrapperCurrent.clientHeight
 
     const scene = new THREE.Scene()
     const camera = new THREE.OrthographicCamera(
@@ -31,7 +31,8 @@ export const Eyes = () => {
 
     const materials = [
       new THREE.MeshBasicMaterial({ map: getTexture(0) }),
-      new THREE.MeshBasicMaterial({ map: getTexture(1) })
+      new THREE.MeshBasicMaterial({ map: getTexture(1) }),
+      new THREE.MeshBasicMaterial({ map: getTexture(2) })
     ]
 
     const eyes: THREE.Mesh[] = []
@@ -42,80 +43,70 @@ export const Eyes = () => {
     renderer.setSize(width, height)
     renderer.setPixelRatio(window.devicePixelRatio)
 
-    const wn = Math.ceil(width / 90 / 2)
-    const hn = Math.ceil(height / 90 / 2)
-    let u = 0
+    const xTotal = Math.ceil(width / 80)
+    const yTotal = Math.ceil(height / 80)
+    let index = 0
 
-    for (let x = -wn; x < wn; x++) {
-      for (let y = -hn; y < hn; y++) {
-        u++
-
-        eyes[x + y] = new THREE.Mesh(
+    for (let x = -xTotal / 2; x < xTotal / 2; x++) {
+      for (let y = -yTotal / 2; y < yTotal / 2; y++) {
+        eyes[index] = new THREE.Mesh(
           geometry,
           materials[Math.floor(Math.random() * materials.length)]
         )
-        eyes[x + y].position.x = x * 2.5
-        eyes[x + y].position.y = y * 2.5
+        eyes[index].position.x = x * 2.5 + 1.25
+        eyes[index].position.y = y * 2.5 + 1.25
 
-        eyes[x + y].rotation.x = -Math.PI / 2
+        scene.add(eyes[index])
 
-        scene.add(eyes[x + y])
+        index++
       }
     }
-
-    console.log(u)
 
     const renderScene = () => {
       renderer.render(scene, camera)
     }
 
     const handleResize = () => {
-      width = mountCurrent.clientWidth
-      height = mountCurrent.clientHeight
+      width = eyeWrapperCurrent.clientWidth
+      height = eyeWrapperCurrent.clientHeight
       renderer.setSize(width, height)
       camera.updateProjectionMatrix()
       renderScene()
     }
 
-    // const animate = () => {
-    //   eyes[0].rotation.x += 0.01
-    //   // eyes[1].rotation.x += 0.01
-
-    //   // eyes[0].rotation.z += 0.01
-    //   // eyes[1].rotation.z += 0.01
-
-    //   renderScene()
-    //   requestAnimationFrame(animate)
-    // }
-
     const handleMouseMove = (e: MouseEvent) => {
       requestAnimationFrame(() => {
-        console.log('handleMouseMove', e)
+        let pos = new THREE.Vector3()
+        const screenX = e.screenX
+        const screenY = e.screenY
 
         for (let index = 0; index < eyes.length; index++) {
-          // eyes[index].rotation.z += 0.01
+          pos = pos.setFromMatrixPosition(eyes[index].matrixWorld)
+          pos.project(camera)
+          pos.x = pos.x * (width / 2) + width / 2
+          pos.y = -(pos.y * (height / 2)) + height / 2
+          pos.z = 0
 
-          eyes[index].lookAt(-e.screenX, e.screenY, 100)
+          eyes[index].rotation.z = ((Math.PI * 0.5) / width) * (screenX - pos.x)
+          eyes[index].rotation.x =
+            -Math.PI / 2 + ((Math.PI * 0.5) / height) * (screenY - pos.y)
         }
 
         renderScene()
-
-        // eyes[0].rotation.x += 0.01
       })
     }
 
     renderScene()
 
-    // requestAnimationFrame(animate)
+    eyeWrapperCurrent.appendChild(renderer.domElement)
 
-    mountCurrent.appendChild(renderer.domElement)
     window.addEventListener('resize', handleResize)
     window.addEventListener('mousemove', handleMouseMove)
 
     return () => {
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('mousemove', handleMouseMove)
-      mountCurrent.removeChild(renderer.domElement)
+      eyeWrapperCurrent.removeChild(renderer.domElement)
       geometry.dispose()
 
       for (let i = 0; i < eyes.length; i++) {
@@ -128,5 +119,5 @@ export const Eyes = () => {
     }
   }, [])
 
-  return <EyeWrapper ref={mount} />
+  return <EyeWrapper ref={eyeWrapper} />
 }
