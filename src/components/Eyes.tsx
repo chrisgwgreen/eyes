@@ -37,7 +37,7 @@ export const Eyes = () => {
 
     const eyes: THREE.Mesh[] = []
 
-    camera.position.z = 30
+    camera.position.z = 80
 
     renderer.setClearColor('#eee')
     renderer.setSize(width, height)
@@ -47,12 +47,13 @@ export const Eyes = () => {
     const yTotal = Math.ceil(height / 80)
     let index = 0
 
-    for (let x = -xTotal / 2; x < xTotal / 2; x++) {
-      for (let y = -yTotal / 2; y < yTotal / 2; y++) {
-        eyes[index] = new THREE.Mesh(
-          geometry,
-          materials[Math.floor(Math.random() * materials.length)]
-        )
+    let eyeColor = materials[Math.floor(Math.random() * materials.length)]
+    for (let y = -yTotal / 2; y < yTotal / 2; y++) {
+      for (let x = -xTotal / 2; x < xTotal / 2; x++) {
+        if (index % 2 === 0)
+          eyeColor = materials[Math.floor(Math.random() * materials.length)]
+
+        eyes[index] = new THREE.Mesh(geometry, eyeColor)
         eyes[index].position.x = x * 2.5 + 1.25
         eyes[index].position.y = y * 2.5 + 1.25
 
@@ -77,8 +78,8 @@ export const Eyes = () => {
     const handleMouseMove = (e: MouseEvent) => {
       requestAnimationFrame(() => {
         let pos = new THREE.Vector3()
-        const screenX = e.screenX
-        const screenY = e.screenY
+        const screenX = e.screenX - 40
+        const screenY = e.screenY - 40
 
         for (let index = 0; index < eyes.length; index++) {
           pos = pos.setFromMatrixPosition(eyes[index].matrixWorld)
